@@ -10,7 +10,7 @@ Default source: PHerc. Paris 4 m7 surface prediction at L2 (9.6 um, 18946 x 8174
 
 usage: fetch_m7_map.py OUT.zarr --z0 10000 --z1 12000 [--y0 600 --y1 7400 --x0 3900 --x1 7700] [--url URL] [--jobs 16]
 """
-import argparse, json, os, urllib.error, urllib.request
+import argparse, json, os, sys, urllib.error, urllib.request
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
@@ -41,6 +41,7 @@ for name in (".zgroup", ".zattrs"):
         pass
 zarray = get(f"{a.url}/{a.level}/.zarray"); (arr / ".zarray").write_bytes(zarray)
 meta = json.loads(zarray); cz, cy, cx = meta["chunks"]; sep = meta.get("dimension_separator", ".")
+if sep not in (".", "/"): sys.exit(f"unexpected dimension_separator {sep!r} in .zarray")
 keys = [sep.join(map(str, (z, y, x)))
         for z in range(a.z0 // cz, a.z1 // cz + 1) for y in range(a.y0 // cy, a.y1 // cy + 1) for x in range(a.x0 // cx, a.x1 // cx + 1)]
 
